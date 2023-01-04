@@ -6,16 +6,51 @@ const { fifaData } = require('./fifa.js')
 	
 	💡 İPUCU: Öncelikle datayı filtrelemek isteyebilirsiniz */
 
+	const finalMaci2014 = fifaData.filter(finalMaci);
+	function finalMaci(mac){
+		return mac.Year == 2014 && mac["Stage"] == "Final"
+	} 
+
+// Aynı fonksiyonu arrow function olarak da yazabiliriz. 
+const finalMaci2014v2 = fifaData.filter((mac) => {
+	return mac.Year == 2014 && mac["Stage"] == "Final";
+}
+)
+console.log(finalMaci2014v2);
+
+// Arrow function'da tek bir parametre varsa parantez yazılmayadabilir. Ayrıca 1 den fazla satır yazılmayacaksa süslü parantezler de silinebilir.
+const finalMaci2014v3 = fifaData.filter(mac => mac.Year == 2014 && mac["Stage"] == "Final");
+
 //(a) 2014 Dünya kupası Finali Evsahibi takım ismi (dizide "Home Team Name" anahtarı)
+
+console.log(finalMaci2014[0]['Home Team Name']);
+
+
+
 
 //(b) 2014 Dünya kupası Finali Deplasman takım ismi  (dizide "Away Team Name" anahtarı)
 
+console.log(finalMaci2014[0]['Away Team Name']);
+ 
 //(c) 2014 Dünya kupası finali Ev sahibi takım golleri (dizide "Home Team Goals" anahtarı)
+console.log(finalMaci2014[0]['Home Team Goals']);
 
 //(d)2014 Dünya kupası finali Deplasman takım golleri  (dizide "Away Team Goals" anahtarı)
 
-//(e) 2014 Dünya kupası finali kazananı*/
+console.log(finalMaci2014[0]['Away Team Goals']);
 
+
+//(e) 2014 Dünya kupası finali kazananı*/
+if(finalMaci2014[0]['Home Team Goals'] > finalMaci2014[0]['Away Team Goals']){
+	console.log("2014 Dünya kupasını " + finalMaci2014[0]['Home Team Name'] + " kazandı")
+} else if(finalMaci2014[0]['Away Team Goals'] > finalMaci2014[0]['Home Team Goals']){
+	console.log("2014 Dünya kupasını " + finalMaci2014[0]['Away Team Name'] + " kazandı")
+
+} else {
+	let kelimeler = finalMaci[0]['Win conditions'].split(" ");
+	console.log("2014 Dünya kupasını " + kelimeler[0] + " kazandı")
+ 
+}
 
 /*  Görev 2: 
 	Finaller adlı fonksiyonu kullanarak aşağıdakileri uygulayın:
@@ -25,12 +60,12 @@ const { fifaData } = require('./fifa.js')
 	💡 İPUCU - verilen data içindeki nesnelerin(objects) "Stage" anahtarına bakmalısınız
 */
 
-function Finaller(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
+function Finaller(data) {
+	let finalMaclari = data.filter(item => item.Stage == "Final");
+	return finalMaclari;
 }
-
-
+console.log(Finaller(fifaData));
+ 
 
 /*  Görev 3: 
 	Bir higher-order fonksiyonu olan Yillar isimli fonksiyona aşağıdakileri uygulayın: 
@@ -39,10 +74,13 @@ function Finaller(/* kodlar buraya */) {
 	3. Finaller data setindeki tüm yılları içeren "years" adındaki diziyi(array) döndürecek
 	*/
 
-function Yillar(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
+function Yillar(veri, cbFinaller) {
+	let years = cbFinaller(veri).map(item => {
+		return item.Year
+	})
+return years;
 }
+console.log(Yillar(fifaData,Finaller));
 
 
 /*  Görev 4: 
@@ -53,12 +91,25 @@ function Yillar(/* kodlar buraya */) {
 	💡 İPUCU: Beraberlikler(ties) için şimdilik endişelenmeyin (Detaylı bilgi için README dosyasına bakabilirsiniz.)
 	4. Tüm kazanan ülkelerin isimlerini içeren `kazananlar` adında bir dizi(array) döndürecek(return)  */ 
 
-function Kazananlar(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
-	
-}
+function Kazananlar(data,cbFinaller) {
+		let finaller = cbFinaller(data);
+		let kazananlar = [];
+		
+		finaller.forEach(item => {
+			if(item['Home Team Goals'] > item['Away Team Goals']){
+				kazananlar.push(item["Home Team Name"]);
+			} else if(item['Away Team Goals'] > item['Home Team Goals']){
+				kazananlar.push(item["Away Team Name"]);
+			} else {
+				let kelimeler = item['Win conditions'].split(" ");
+				kazananlar.push(kelimeler[0]);
+			}
+			
+		})
 
+return kazananlar;
+}
+console.log(Kazananlar(fifaData,Finaller));
 
 
 /*  Görev 5: 
@@ -72,12 +123,17 @@ function Kazananlar(/* kodlar buraya */) {
 	💡 İPUCU: her cümlenin adım 4'te belirtilen cümleyle birebir aynı olması gerekmektedir.
 */
 
-function YillaraGoreKazananlar(/* kodlar buraya */) {
-	
-/* kodlar buraya */
+function YillaraGoreKazananlar(data,cbFinaller,cbYillar,cbKazananlar) {
+	let finalMetin = [];
+	let yillar = cbYillar(data,cbFinaller);
+	let kazananlar = cbKazananlar(data,cbFinaller);
+	yillar.forEach((item, i) => {
+		finalMetin.push(`${item} yılında, ${kazananlar[i]} dünya kupasını kazandı!`)
+	})
 
+	return finalMetin;
 }
-
+console.log(YillaraGoreKazananlar(fifaData,Finaller,Yillar,Kazananlar));
 
 /*  Görev 6: 
 	Bir higher order fonksiyonu olan `OrtalamaGolSayisi` isimli fonksiyona aşağıdakileri uygulayın: 
@@ -92,12 +148,16 @@ function YillaraGoreKazananlar(/* kodlar buraya */) {
 	💡 İPUCU: .reduce, .toFixed (dizilim(syntax) için MDN'ye bakın) kullan, ve bunu 2 adımda yapın) 
 	
 */
+console.clear();
 
-function OrtalamaGolSayisi(/* kodlar buraya */) {
-	
-    /* kodlar buraya */
-	
+function OrtalamaGolSayisi(cbFinaller) {
+	let finalToplamGol = cbFinaller.reduce(
+		(total, item) => (total + item["Home Team Goals"] + item["Away Team Goals"]),0);
+		let sonuc = (finalToplamGol / cbFinaller.length).toFixed(2);
+return sonuc;
+
 }
+console.log(OrtalamaGolSayisi(Finaller(fifaData)));
 
 
 
